@@ -194,8 +194,8 @@ var _getItemAt,
 			img = item.container.lastChild;
 		}
 
-		var w = maxRes ? item.w : Math.round(item.w * item.fitRatio),
-			h = maxRes ? item.h : Math.round(item.h * item.fitRatio);
+		var w = item.calculatedWidth  = maxRes ? item.w : Math.round(item.w * item.fitRatio),
+			h = item.calculatedHeight = maxRes ? item.h : Math.round(item.h * item.fitRatio);
 		
 		if(item.placeholder && !item.loaded) {
 			item.placeholder.style.width = w + 'px';
@@ -205,6 +205,8 @@ var _getItemAt,
 		img.style.width = w + 'px';
 		img.style.height = h + 'px';
 	},
+
+	// What is this?
 	_appendImagesPool = function() {
 
 		if(_imagesToAppendPool.length) {
