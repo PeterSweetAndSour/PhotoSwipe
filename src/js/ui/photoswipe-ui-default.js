@@ -50,12 +50,12 @@ var PhotoSwipeUI_Default =
 			timeToIdleOutside: 1000,
 			loadingIndicatorDelay: 1000, // 2s
 			
-			addCaptionHTMLFn: function(item, captionEl /*, isFake */) {
+			addCaptionHTMLFn: function(item, captionElement /*, isFake */) {
 				if(!item.title) {
-					captionEl.children[0].innerHTML = '';
+					captionElement.children[0].innerHTML = '';
 					return false;
 				}
-				captionEl.children[0].innerHTML = item.title;
+				captionElement.children[0].innerHTML = item.title;
 				return true;
 			},
 
@@ -80,12 +80,15 @@ var PhotoSwipeUI_Default =
 													'?url={{url}}&media={{image_url}}&description={{text}}'},
 				{id:'download', label:'Download image', url:'{{raw_image_url}}', download:true}
 			],
+
 			getImageURLForShare: function( /* shareButtonData */ ) {
 				return pswp.currItem.src || '';
 			},
+
 			getPageURLForShare: function( /* shareButtonData */ ) {
 				return window.location.href;
 			},
+
 			getTextForShare: function( /* shareButtonData */ ) {
 				return pswp.currItem.title || '';
 			},
@@ -146,9 +149,11 @@ var PhotoSwipeUI_Default =
 			}
 
 		},
+
 		_fitControlsInViewport = function() {
 			return !pswp.likelyTouchDevice || _options.mouseUsed || screen.width > _options.fitControlsWidth;
 		},
+
 		_togglePswpClass = function(el, cName, add) {
 			framework[ (add ? 'add' : 'remove') + 'Class' ](el, 'pswp__' + cName);
 		},
@@ -163,9 +168,11 @@ var PhotoSwipeUI_Default =
 				_galleryHasOneSlide = hasOneSlide;
 			}
 		},
+
 		_toggleShareModalClass = function() {
 			_togglePswpClass(_shareModal, 'share-modal--hidden', _shareModalHidden);
 		},
+
 		_toggleShareModal = function() {
 
 			_shareModalHidden = !_shareModalHidden;
@@ -217,6 +224,7 @@ var PhotoSwipeUI_Default =
 			
 			return false;
 		},
+
 		_updateShareURLs = function() {
 			var shareButtonOut = '',
 				shareButtonData,
@@ -250,6 +258,7 @@ var PhotoSwipeUI_Default =
 			_shareModal.children[0].onclick = _openWindowPopup;
 
 		},
+
 		_hasCloseClass = function(target) {
 			for(var  i = 0; i < _options.closeElClasses.length; i++) {
 				if( framework.hasClass(target, 'pswp__' + _options.closeElClasses[i]) ) {
@@ -257,9 +266,11 @@ var PhotoSwipeUI_Default =
 				}
 			}
 		},
+
 		_idleInterval,
 		_idleTimer,
 		_idleIncrement = 0,
+
 		_onIdleMouseMove = function() {
 			clearTimeout(_idleTimer);
 			_idleIncrement = 0;
@@ -267,6 +278,7 @@ var PhotoSwipeUI_Default =
 				ui.setIdle(false);
 			}
 		},
+
 		_onMouseLeaveWindow = function(e) {
 			e = e ? e : window.event;
 			var from = e.relatedTarget || e.toElement;
@@ -277,6 +289,7 @@ var PhotoSwipeUI_Default =
 				}, _options.timeToIdleOutside);
 			}
 		},
+
 		_setupFullscreenAPI = function() {
 			if(_options.fullscreenEl && !framework.features.isOldAndroid) {
 				if(!_fullscrenAPI) {
@@ -291,6 +304,7 @@ var PhotoSwipeUI_Default =
 				}
 			}
 		},
+
 		_setupLoadingIndicator = function() {
 			// Setup loading indicator
 			if(_options.preloaderEl) {
@@ -318,8 +332,8 @@ var PhotoSwipeUI_Default =
 						}
 
 					}, _options.loadingIndicatorDelay);
-					
 				});
+
 				_listen('imageLoadComplete', function(index, item) {
 					if(pswp.currItem === item) {
 						_toggleLoadingIndicator(true);
@@ -328,12 +342,14 @@ var PhotoSwipeUI_Default =
 
 			}
 		},
+
 		_toggleLoadingIndicator = function(hide) {
 			if( _loadingIndicatorHidden !== hide ) {
 				_togglePswpClass(_loadingIndicator, 'preloader--active', !hide);
 				_loadingIndicatorHidden = hide;
 			}
 		},
+
 		_applyNavBarGaps = function(item) {
 			var gap = item.vGap;
 
@@ -341,7 +357,7 @@ var PhotoSwipeUI_Default =
 				
 				var bars = _options.barsSize; 
 				if(_options.captionEl && bars.bottom === 'auto') {
-					// Why is this fake caption container create with visibility:hidden
+					// Why is this fake caption container created with visibility:hidden
 					// and why only when bottom bar height is 'auto'?
 					if(!_fakeCaptionContainer) {
 						_fakeCaptionContainer = framework.createElement('pswp__caption pswp__caption--fake');
@@ -366,6 +382,7 @@ var PhotoSwipeUI_Default =
 				gap.top = gap.bottom = 0;
 			}
 		},
+
 		_setupIdle = function() {
 			// Hide controls when mouse is used
 			if(_options.timeToIdle) {
@@ -383,6 +400,7 @@ var PhotoSwipeUI_Default =
 				});
 			}
 		},
+
 		_setupHidingControlsDuringGestures = function() {
 
 			// Hide controls on vertical drag
