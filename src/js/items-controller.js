@@ -193,8 +193,10 @@ var _getItemAt,
 			img = item.container.lastChild;
 		}
 
-		var w = item.calculatedWidth  = maxRes ? item.w : Math.round(item.w * item.fitRatio),
-			h = item.calculatedHeight = maxRes ? item.h : Math.round(item.h * item.fitRatio);
+		item.calculatedSize = {};
+		
+		var w = item.calculatedSize.x = maxRes ? item.w : Math.round(item.w * item.fitRatio),
+			h = item.calculatedSize.y = maxRes ? item.h : Math.round(item.h * item.fitRatio);
 		
 		if(item.placeholder && !item.loaded) {
 			item.placeholder.style.width = w + 'px';
