@@ -145,11 +145,11 @@ var _getItemAt,
 	},
 	
 
-
 	_preloadImage = function(item) {
 		item.loading = true;
 		item.loaded = false;
 		var img = item.img = framework.createElement('pswp__img', 'img');
+
 		var onComplete = function() {
 			item.loading = false;
 			item.loaded = true;
@@ -162,7 +162,9 @@ var _getItemAt,
 			img.onload = img.onerror = null;
 			img = null;
 		};
+
 		img.onload = onComplete;
+
 		img.onerror = function() {
 			item.loadError = true;
 			onComplete();
@@ -193,10 +195,8 @@ var _getItemAt,
 			img = item.container.lastChild;
 		}
 
-		item.calculatedSize = {};
-		
-		var w = item.calculatedSize.x = maxRes ? item.w : Math.round(item.w * item.fitRatio),
-			h = item.calculatedSize.y = maxRes ? item.h : Math.round(item.h * item.fitRatio);
+		var w = maxRes ? item.w : Math.round(item.w * item.fitRatio),
+			h = maxRes ? item.h : Math.round(item.h * item.fitRatio);
 		
 		if(item.placeholder && !item.loaded) {
 			item.placeholder.style.width = w + 'px';
@@ -205,6 +205,10 @@ var _getItemAt,
 
 		img.style.width = w + 'px';
 		img.style.height = h + 'px';
+
+		img.dataset.initialHeight = h;
+
+		return {width: w, height: h};
 	},
 
 	// What is this?
@@ -245,6 +249,7 @@ _registerModule('Controller', {
 
 			_preloadImage(item);
 		},
+
 		initController: function() {
 			framework.extend(_options, _controllerDefaultOptions, true);
 			self.items = _items = items;
@@ -344,7 +349,8 @@ _registerModule('Controller', {
 			}
 	
 			var item = self.getItemAt(index),
-				img;
+				img,
+				imageSize;
 			
 			if(!item) {
 				holder.el.innerHTML = '';
@@ -422,6 +428,8 @@ _registerModule('Controller', {
 					item.loadComplete = null;
 					item.img = null; // no need to store image element after it's added
 
+
+
 					_shout('imageLoadComplete', index, item);
 				};
 
@@ -435,7 +443,7 @@ _registerModule('Controller', {
 						placeholder.src = item.msrc;
 					}
 					
-					_setImageSize(item, placeholder);
+					imageSize = _setImageSize(item, placeholder);
 
 					baseDiv.appendChild(placeholder);
 					item.placeholder = placeholder;
@@ -465,7 +473,7 @@ _registerModule('Controller', {
 				img = framework.createElement('pswp__img', 'img');
 				img.style.opacity = 1;
 				img.src = item.src;
-				_setImageSize(item, img);
+				imageSize = _setImageSize(item, img);
 				_appendImage(index, item, baseDiv, img, true);
 			}
 			
@@ -479,6 +487,10 @@ _registerModule('Controller', {
 
 			holder.el.innerHTML = '';
 			holder.el.appendChild(baseDiv);
+
+			holder.el.dataset.topGap = item.vGap.top;
+			holder.el.dataset.bottomGap = item.vGap.bottom;
+			holder.el.dataset.imageHeight = imageSize ? imageSize.height : "";
 		},
 
 		cleanSlide: function( item ) {
