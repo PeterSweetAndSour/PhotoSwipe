@@ -74,7 +74,6 @@ var _getItemAt,
 				var vRatio = _tempPanAreaSize.y / item.h;
 
 				item.fitRatio = hRatio < vRatio ? hRatio : vRatio;
-				//item.fillRatio = hRatio > vRatio ? hRatio : vRatio;
 
 				var scaleMode = _options.scaleMode;
 
@@ -207,10 +206,6 @@ var _getItemAt,
 
 		img.style.width = w + 'px';
 		img.style.height = h + 'px';
-
-		//img.dataset.initialHeight = h;
-
-		return {width: w, height: h};
 	},
 
 	// What is this?
@@ -482,27 +477,29 @@ _registerModule('Controller', {
 			}
 			
 			var scale = 1;
+			var transform = {};
 			if(!_initialContentSet && index === _currentItemIndex) {
 				_currZoomElementStyle = baseDiv.style;
 				_showOrHide(item, (img ||item.img) );
 
-				var cssTransform = baseDiv.style.transform; // e.g. "translate3d(65px, 87px, 0px) scale(0.875912)";
-				if(/^translate.*scale.*$/.test(cssTransform)) {
-                    var translateY = cssTransform.replace(/^translate(3d)?\([0-9]*px, /, "").replace(/px.*$/, "");
-					scale = cssTransform.replace(/^.*scale\(/, "").replace(/\)/, "");
-					console.log("scale: " + scale + ", image height: " + imageSize.height);
-                }
+				// var cssTransform = baseDiv.style.transform; // e.g. "translate3d(65px, 87px, 0px) scale(0.875912)";
+				// if(/^translate.*scale.*$/.test(cssTransform)) {
+                //     var translateY = cssTransform.replace(/^translate(3d)?\([0-9]*px, /, "").replace(/px.*$/, "");
+				// scale = cssTransform.replace(/^.*scale\(/, "").replace(/\)/, "");
+				// console.log("scale: " + scale + ", image height: " + imageSize.height);
+                // }
 			} else {
+				// console.log("Doing applyZoomPanToItem instead");
 				_applyZoomPanToItem(item);
 			}
 
 			holder.el.innerHTML = '';
 			holder.el.appendChild(baseDiv);
 
-			holder.el.dataset.viewportHeight = _viewportSize.y;
-			holder.el.dataset.gapTop = item.vGap.top;
-			holder.el.dataset.imagePositionTop = item.initialPosition.y;
-			holder.el.dataset.imageHeight = Math.round(imageSize.height * parseFloat(scale));
+			// holder.el.dataset.viewportHeight = _viewportSize.y;
+			// holder.el.dataset.gapTop = item.vGap.top;
+			// holder.el.dataset.imagePositionTop = item.initialPosition.y;
+			// holder.el.dataset.imageHeight = Math.round(imageSize.height * parseFloat(scale));
 		},
 
 		cleanSlide: function( item ) {
