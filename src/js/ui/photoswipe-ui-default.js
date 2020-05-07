@@ -139,7 +139,6 @@
 			layoutData.imagePositionTop = parseInt(captionElement.dataset.imagePositionTop, 10);
 			layoutData.apparentImageHeight = parseInt(captionElement.dataset.apparentImageHeight, 10);
 
-			console.log("height: " + window.innerHeight);
 			layoutData.captionInitialPositionTop = layoutData.imagePositionTop + layoutData.apparentImageHeight;
 			layoutData.captionInitialHeight = window.innerHeight - layoutData.captionInitialPositionTop;
 			layoutData.captionMaxHeight = window.innerHeight - layoutData.gapTop;
@@ -202,6 +201,11 @@
 					}
 				}
 
+				// Long captions will contain HTML so caption element will be an ancestor of target
+				if(target.closest(".pswp__caption__center")) {
+					found = true;
+				}
+	
 				if(found) {
 					if(e.stopPropagation) {
 						e.stopPropagation();
@@ -481,9 +485,6 @@
 						_options.closeElClasses.splice(index, 1);
 					}
 				}
-
-				// Don't hide/show controls on tap 
-				_options.tapToToggleControls = false;
 			},
 
 			_setupHidingControlsDuringGestures = function() {
@@ -856,7 +857,7 @@
 			} else {
 
 				// tap anywhere (except buttons and caption) to toggle visibility of controls
-				if(_options.tapToToggleControls && !target.classList.contains("pswp__caption__center")) {
+				if(_options.tapToToggleControls) {
 					if(_controlsVisible) {
 						ui.hideControls();
 					} else {
