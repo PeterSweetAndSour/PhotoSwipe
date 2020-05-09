@@ -1130,6 +1130,7 @@ _registerModule('Gestures', {
 			if(_pointerEventEnabled && !_likelyTouchDevice) {
 				_likelyTouchDevice = (navigator.maxTouchPoints > 1) || (navigator.msMaxTouchPoints > 1);
 			}
+			_likelyTouchDevice = false;
 			// make variable public
 			self.likelyTouchDevice = _likelyTouchDevice; 
 			
