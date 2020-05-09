@@ -150,6 +150,7 @@ _registerModule('DesktopZoom', {
 				if(e.wheelDeltaX) {
 					_wheelDelta.x = -0.16 * e.wheelDeltaX;
 				}
+				
 				if(e.wheelDeltaY) {
 					_wheelDelta.y = -0.16 * e.wheelDeltaY;
 				} else {
