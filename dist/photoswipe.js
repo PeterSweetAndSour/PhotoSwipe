@@ -1,6 +1,7 @@
-/*! PhotoSwipe - v4.1.3 - 2019-01-08
+/*! PhotoSwipe - v4.1.3 - 2020-05-12
 * http://photoswipe.com
-* Copyright (c) 2019 Dmitry Semenov; */
+* Copyright (c) 2020 Dmitry Semenov; */
+// Using UMD (Universal Module Definition) https://www.davidbcalhoun.com/2014/what-is-amd-commonjs-and-umd/
 (function (root, factory) { 
 	if (typeof define === 'function' && define.amd) {
 		define(factory);
@@ -36,7 +37,7 @@ var framework = {
 	isArray: function(obj) {
 		return (obj instanceof Array);
 	},
-	createEl: function(classes, tag) {
+	createElement: function(classes, tag) {
 		var el = document.createElement(tag || 'div');
 		if(classes) {
 			el.className = classes;
@@ -142,7 +143,7 @@ var framework = {
 		if(framework.features) {
 			return framework.features;
 		}
-		var helperEl = framework.createEl(),
+		var helperEl = framework.createElement(),
 			helperStyle = helperEl.style,
 			vendor = '',
 			features = {};
@@ -293,6 +294,25 @@ if(framework.features.oldIE) {
 	
 }
 
+// Polyfill for closest() for IE11 from https://developer.mozilla.org/en-US/docs/Web/API/Element/closest. 
+// Not bothering with versions older than 11 and it is debatable whether we should worry even about 11 now.
+if (!Element.prototype.matches) {
+	Element.prototype.matches = Element.prototype.msMatchesSelector || 
+								Element.prototype.webkitMatchesSelector;
+  }
+  
+  if (!Element.prototype.closest) {
+	Element.prototype.closest = function(s) {
+	  var el = this;
+  
+	  do {
+		if (Element.prototype.matches.call(el, s)) return el;
+		el = el.parentElement || el.parentNode;
+	  } while (el !== null && el.nodeType === 1);
+	  return null;
+	};
+  }
+
 /*>>framework-bridge*/
 
 /*>>core*/
@@ -316,8 +336,8 @@ var _options = {
 	mouseUsed: false,
 	loop: true,
 	pinchToClose: true,
-	closeOnScroll: true,
-	closeOnVerticalDrag: true,
+	closeOnScroll: true,        // Will be overridden if allowLongCaptions is true
+	closeOnVerticalDrag: true,  // Will be overridden if allowLongCaptions is true
 	verticalDragRange: 0.75,
 	hideAnimationDuration: 333,
 	showAnimationDuration: 333,
@@ -410,7 +430,7 @@ var _isOpen,
 		var numSlides = _getNumItems();
 		if(index > numSlides - 1) {
 			return index - numSlides;
-		} else  if(index < 0) {
+		} else if(index < 0) {
 			return numSlides + index;
 		}
 		return index;
@@ -424,6 +444,7 @@ var _isOpen,
 		}
 		return _listeners[name].push(fn);
 	},
+
 	_shout = function(name) {
 		var listeners = _listeners[name];
 
@@ -440,18 +461,20 @@ var _isOpen,
 	_getCurrentTime = function() {
 		return new Date().getTime();
 	},
+
 	_applyBgOpacity = function(opacity) {
 		_bgOpacity = opacity;
 		self.bg.style.opacity = opacity * _options.bgOpacity;
 	},
 
-	_applyZoomTransform = function(styleObj,x,y,zoom,item) {
+	_applyZoomTransform = function(styleObj, x, y, zoom, item) {
 		if(!_renderMaxResolution || (item && item !== self.currItem) ) {
 			zoom = zoom / (item ? item.fitRatio : self.currItem.fitRatio);	
 		}
 			
 		styleObj[_transformKey] = _translatePrefix + x + 'px, ' + y + 'px' + _translateSufix + ' scale(' + zoom + ')';
 	},
+
 	_applyCurrentZoomPan = function( allowRenderResolution ) {
 		if(_currZoomElementStyle) {
 
@@ -468,11 +491,11 @@ var _isOpen,
 					}
 				}
 			}
-			
-
+		
 			_applyZoomTransform(_currZoomElementStyle, _panOffset.x, _panOffset.y, _currZoomLevel);
 		}
 	},
+
 	_applyZoomPanToItem = function(item) {
 		if(item.container) {
 
@@ -483,9 +506,11 @@ var _isOpen,
 								item);
 		}
 	},
+
 	_setTranslateX = function(x, elStyle) {
 		elStyle[_transformKey] = _translatePrefix + x + 'px, 0px' + _translateSufix;
 	},
+
 	_moveMainScroll = function(x, dragging) {
 
 		if(!_options.loop && dragging) {
@@ -501,6 +526,13 @@ var _isOpen,
 		_mainScrollPos.x = x;
 		_setTranslateX(x, _containerStyle);
 	},
+
+	_resetCaptionCtrl = function() {
+		var captionCtrl = self.scrollWrap.querySelector(".pswp__button--caption--ctrl");
+		captionCtrl.classList.remove("pswp__button--caption--ctrl--expand");
+		captionCtrl.classList.remove("pswp__button--caption--ctrl--collapse");
+	},
+
 	_calculatePanOffset = function(axis, zoomLevel) {
 		var m = _midZoomPoint[axis] - _offset[axis];
 		return _startPanOffset[axis] + _currPanDist[axis] + m - m * ( zoomLevel / _startZoomLevel );
@@ -513,6 +545,7 @@ var _isOpen,
 			p1.id = p2.id;
 		}
 	},
+
 	_roundPoint = function(p) {
 		p.x = Math.round(p.x);
 		p.y = Math.round(p.y);
@@ -584,6 +617,7 @@ var _isOpen,
 		}
 		return item.initialZoomLevel;
 	},
+
 	_getMaxZoomLevel = function(item) {
 		if(!item) {
 			item = self.currItem;
@@ -629,6 +663,7 @@ var _isOpen,
 		_setTranslateX = function(x, elStyle) {
 			elStyle.left = x + 'px';
 		};
+
 		_applyZoomPanToItem = function(item) {
 
 			var zoomRatio = item.fitRatio > 1 ? 1 : item.fitRatio,
@@ -641,7 +676,12 @@ var _isOpen,
 			s.left = item.initialPosition.x + 'px';
 			s.top = item.initialPosition.y + 'px';
 
+			console.log("This is _applyZoomPanToItem at line 355");
+			item.zoom = zoomRatio;
+			item.apparentImageHeight = h;
+			item.imageFromTop = item.initialPosition;
 		};
+
 		_applyCurrentZoomPan = function() {
 			if(_currZoomElementStyle) {
 
@@ -653,7 +693,6 @@ var _isOpen,
 
 				s.width = w + 'px';
 				s.height = h + 'px';
-
 
 				s.left = _panOffset.x + 'px';
 				s.top = _panOffset.y + 'px';
@@ -874,7 +913,7 @@ var publicMethods = {
 			self['init' + _modules[i]]();
 		}
 		
-		// init
+		// Create new PhotoSwipeUI_Default object and run init
 		if(UiClass) {
 			var ui = self.ui = new UiClass(self, framework);
 			ui.init();
@@ -1014,8 +1053,8 @@ var publicMethods = {
 		framework.unbind(window, 'scroll', self);
 
 		_stopDragUpdateLoop();
-
 		_stopAllAnimations();
+		_resetCaptionCtrl();
 
 		_listeners = null;
 	},
@@ -1066,16 +1105,18 @@ var publicMethods = {
 		_currPositionIndex -= diff;
 		
 		_moveMainScroll(_slideSize.x * _currPositionIndex);
-		
+		_resetCaptionCtrl();
 
 		_stopAllAnimations();
 		_mainScrollAnimating = false;
 
 		self.updateCurrItem();
 	},
+
 	next: function() {
 		self.goTo( _currentItemIndex + 1);
 	},
+	
 	prev: function() {
 		self.goTo( _currentItemIndex - 1);
 	},
@@ -1142,6 +1183,7 @@ var publicMethods = {
 			_containerShiftIndex += _indexDiff + (_indexDiff > 0 ? -NUM_HOLDERS : NUM_HOLDERS);
 			diffAbs = NUM_HOLDERS;
 		}
+
 		for(var i = 0; i < diffAbs; i++) {
 			if(_indexDiff > 0) {
 				tempHolder = _itemHolders.shift();
@@ -1203,8 +1245,6 @@ var publicMethods = {
 			//template.style.width = _windowVisibleSize.x + 'px';
 			template.style.height = _windowVisibleSize.y + 'px';
 		}
-
-
 
 		_viewportSize.x = self.scrollWrap.clientWidth;
 		_viewportSize.y = self.scrollWrap.clientHeight;
@@ -1395,6 +1435,7 @@ var _gestureStartTime,
 	_opacityChanged,
 	_bgOpacity,
 	_wasOverInitialZoom,
+	_target,
 
 	_isEqualPoints = function(p1, p2) {
 		return p1.x === p2.x && p1.y === p2.y;
@@ -1592,11 +1633,7 @@ var _gestureStartTime,
 							newPanPos = newOffset;
 						}
 					}
-
 				}
-
-
-				//
 			}
 
 			if(axis === 'x') {
@@ -1662,9 +1699,9 @@ var _gestureStartTime,
 			e.preventDefault();
 		}
 
-
-
 		_shout('pointerDown');
+
+		_target = e.target || e.srcElement;
 
 		if(_pointerEventEnabled) {
 			var pointerIndex = framework.arraySearch(_currPointers, e.pointerId, 'id');
@@ -1673,8 +1710,6 @@ var _gestureStartTime,
 			}
 			_currPointers[pointerIndex] = {x:e.pageX, y:e.pageY, id: e.pointerId};
 		}
-		
-
 
 		var startPointsList = _getTouchPoints(e),
 			numPoints = startPointsList.length;
@@ -1685,8 +1720,6 @@ var _gestureStartTime,
 
 		// init drag
 		if(!_isDragging || numPoints === 1) {
-
-			
 
 			_isDragging = _isFirstMove = true;
 			framework.bind(window, _upMoveEvents, self);
@@ -1726,7 +1759,6 @@ var _gestureStartTime,
 			// Start rendering
 			_stopDragUpdateLoop();
 			_dragUpdateLoop();
-			
 		}
 
 		// init zoom
@@ -1787,7 +1819,7 @@ var _gestureStartTime,
 			}
 		}	
 	},
-	// 
+
 	_renderMovement =  function() {
 
 		if(!_currentPoints) {
@@ -1896,6 +1928,9 @@ var _gestureStartTime,
 				return;
 			}
 
+			// if dragging up on collapsed caption then open it.
+			
+
 			if(_isFirstMove) {
 				_isFirstMove = false;
 
@@ -1916,6 +1951,16 @@ var _gestureStartTime,
 			// do nothing if pointers position hasn't changed
 			if(delta.x === 0 && delta.y === 0) {
 				return;
+			}
+
+			// if dragging up on a collapsed long caption, expand the caption
+			var targetCaption = _target.closest(".pswp__caption");
+			if(_direction === 'v' && delta.y > -DIRECTION_CHECK_OFFSET && targetCaption) {
+				var toggleCaptionBtn = targetCaption.querySelector(".pswp__button--caption--ctrl");
+				if(toggleCaptionBtn && toggleCaptionBtn.classList.contains("pswp__button--caption--ctrl--expand")) {
+					self.ui.toggleCaption(toggleCaptionBtn);
+					return;
+				}
 			}
 
 			if(_direction === 'v' && _options.closeOnVerticalDrag) {
@@ -2469,8 +2514,10 @@ _registerModule('Gestures', {
 			_downEvents = _dragStartEvent;
 
 			if(_pointerEventEnabled && !_likelyTouchDevice) {
+				// 'likely' - Windows 10 laptop with trackpad, TrackPoint and mouse but no touch support reports maxTouchPoints = 2.
 				_likelyTouchDevice = (navigator.maxTouchPoints > 1) || (navigator.msMaxTouchPoints > 1);
 			}
+
 			// make variable public
 			self.likelyTouchDevice = _likelyTouchDevice; 
 			
@@ -2714,6 +2761,7 @@ var _items,
 var _getItemAt,
 	_getNumItems,
 	_initialIsLoop,
+
 	_getZeroBounds = function() {
 		return {
 			center:{x:0,y:0}, 
@@ -2721,6 +2769,7 @@ var _getItemAt,
 			min:{x:0,y:0}
 		};
 	},
+
 	_calculateSingleItemPanBounds = function(item, realPanElementW, realPanElementH ) {
 		var bounds = item.bounds;
 
@@ -2741,6 +2790,7 @@ var _getItemAt,
 		bounds.min.x = (realPanElementW > _tempPanAreaSize.x) ? 0 : bounds.center.x;
 		bounds.min.y = (realPanElementH > _tempPanAreaSize.y) ? item.vGap.top : bounds.center.y;
 	},
+
 	_calculateItemSize = function(item, viewportSize, zoomLevel) {
 
 		if (item.src && !item.loadError) {
@@ -2754,7 +2804,6 @@ var _getItemAt,
 				_shout('parseVerticalMargin', item);
 			}
 
-
 			_tempPanAreaSize.x = viewportSize.x;
 			_tempPanAreaSize.y = viewportSize.y - item.vGap.top - item.vGap.bottom;
 
@@ -2763,7 +2812,6 @@ var _getItemAt,
 				var vRatio = _tempPanAreaSize.y / item.h;
 
 				item.fitRatio = hRatio < vRatio ? hRatio : vRatio;
-				//item.fillRatio = hRatio > vRatio ? hRatio : vRatio;
 
 				var scaleMode = _options.scaleMode;
 
@@ -2808,9 +2856,6 @@ var _getItemAt,
 		
 	},
 
-	
-
-
 	_appendImage = function(index, item, baseDiv, img, preventAnimation, keepPlaceholder) {
 		
 
@@ -2837,11 +2882,11 @@ var _getItemAt,
 	},
 	
 
-
 	_preloadImage = function(item) {
 		item.loading = true;
 		item.loaded = false;
-		var img = item.img = framework.createEl('pswp__img', 'img');
+		var img = item.img = framework.createElement('pswp__img', 'img');
+
 		var onComplete = function() {
 			item.loading = false;
 			item.loaded = true;
@@ -2854,7 +2899,9 @@ var _getItemAt,
 			img.onload = img.onerror = null;
 			img = null;
 		};
+
 		img.onload = onComplete;
+
 		img.onerror = function() {
 			item.loadError = true;
 			onComplete();
@@ -2864,6 +2911,7 @@ var _getItemAt,
 
 		return img;
 	},
+
 	_checkForError = function(item, cleanUp) {
 		if(item.src && item.loadError && item.container) {
 
@@ -2876,6 +2924,7 @@ var _getItemAt,
 			
 		}
 	},
+
 	_setImageSize = function(item, img, maxRes) {
 		if(!item.src) {
 			return;
@@ -2896,6 +2945,8 @@ var _getItemAt,
 		img.style.width = w + 'px';
 		img.style.height = h + 'px';
 	},
+
+	// What is this?
 	_appendImagesPool = function() {
 
 		if(_imagesToAppendPool.length) {
@@ -2933,6 +2984,7 @@ _registerModule('Controller', {
 
 			_preloadImage(item);
 		},
+
 		initController: function() {
 			framework.extend(_options, _controllerDefaultOptions, true);
 			self.items = _items = items;
@@ -3008,7 +3060,7 @@ _registerModule('Controller', {
 		allowProgressiveImg: function() {
 			// 1. Progressive image loading isn't working on webkit/blink 
 			//    when hw-acceleration (e.g. translateZ) is applied to IMG element.
-			//    That's why in PhotoSwipe parent element gets zoom transform, not image itself.
+			//    That's why in PhotoSwipe parent element (.pwsp__zoom-wrap) gets zoom transform, not image itself.
 			//    
 			// 2. Progressive image loading sometimes blinks in webkit/blink when applying animation to parent element.
 			//    That's why it's disabled on touch devices (mainly because of swipe transition)
@@ -3021,7 +3073,7 @@ _registerModule('Controller', {
 		},
 
 		setContent: function(holder, index) {
-
+  
 			if(_options.loop) {
 				index = _getLoopedId(index);
 			}
@@ -3032,7 +3084,8 @@ _registerModule('Controller', {
 			}
 	
 			var item = self.getItemAt(index),
-				img;
+				img,
+				imageSize;
 			
 			if(!item) {
 				holder.el.innerHTML = '';
@@ -3046,10 +3099,10 @@ _registerModule('Controller', {
 			holder.item = item;
 
 			// base container DIV is created only once for each of 3 holders
-			var baseDiv = item.container = framework.createEl('pswp__zoom-wrap'); 
+			var baseDiv = item.container = framework.createElement('pswp__zoom-wrap'); 
 
 			
-
+			// Insert HTML if that is specified instead of an image.
 			if(!item.src && item.html) {
 				if(item.html.tagName) {
 					baseDiv.appendChild(item.html);
@@ -3077,13 +3130,16 @@ _registerModule('Controller', {
 							item.loadComplete = item.img = null;
 							_calculateItemSize(item, _viewportSize);
 							_applyZoomPanToItem(item);
+ 							console.log("index: " + index + ", item.container.style.transform: " + item.container.style.transform);
 
 							if(holder.index === _currentItemIndex) {
 								// recalculate dimensions
 								self.updateCurrZoomItem();
+								console.log("index: " + index + ", item.container.style.transform: " + item.container.style.transform);
 							}
 							return;
 						}
+
 						if( !item.imageAppended ) {
 							if(_features.transform && (_mainScrollAnimating || _initialZoomRunning) ) {
 								_imagesToAppendPool.push({
@@ -3109,6 +3165,8 @@ _registerModule('Controller', {
 					item.loadComplete = null;
 					item.img = null; // no need to store image element after it's added
 
+
+
 					_shout('imageLoadComplete', index, item);
 				};
 
@@ -3117,25 +3175,20 @@ _registerModule('Controller', {
 					var placeholderClassName = 'pswp__img pswp__img--placeholder'; 
 					placeholderClassName += (item.msrc ? '' : ' pswp__img--placeholder--blank');
 
-					var placeholder = framework.createEl(placeholderClassName, item.msrc ? 'img' : '');
+					var placeholder = framework.createElement(placeholderClassName, item.msrc ? 'img' : '');
 					if(item.msrc) {
 						placeholder.src = item.msrc;
 					}
 					
-					_setImageSize(item, placeholder);
+					imageSize = _setImageSize(item, placeholder);
 
 					baseDiv.appendChild(placeholder);
 					item.placeholder = placeholder;
-
 				}
-				
-
-				
 
 				if(!item.loading) {
 					_preloadImage(item);
 				}
-
 
 				if( self.allowProgressiveImg() ) {
 					// just append image
@@ -3154,14 +3207,15 @@ _registerModule('Controller', {
 				
 			} else if(item.src && !item.loadError) {
 				// image object is created every time, due to bugs of image loading & delay when switching images
-				img = framework.createEl('pswp__img', 'img');
+				img = framework.createElement('pswp__img', 'img');
 				img.style.opacity = 1;
 				img.src = item.src;
-				_setImageSize(item, img);
+				imageSize = _setImageSize(item, img);
 				_appendImage(index, item, baseDiv, img, true);
 			}
 			
-
+			var scale = 1;
+			var transform = {};
 			if(!_initialContentSet && index === _currentItemIndex) {
 				_currZoomElementStyle = baseDiv.style;
 				_showOrHide(item, (img ||item.img) );
@@ -3179,7 +3233,6 @@ _registerModule('Controller', {
 			}
 			item.loaded = item.loading = item.img = item.imageAppended = false;
 		}
-
 	}
 });
 
@@ -3292,6 +3345,10 @@ _registerModule('DesktopZoom', {
 				return;
 			}
 
+			self.setupDesktopZoom();
+			
+			/* There seems to be a timing problem so this may run before a mouseevent is detected in which case
+			   setupDesktopZoom is not run if _likelyTouchDevice was set to true. Just run it all the time.
 			if(_likelyTouchDevice) {
 				// if detected hardware touch support, we wait until mouse is used,
 				// and only then apply desktop-zoom features
@@ -3301,7 +3358,7 @@ _registerModule('DesktopZoom', {
 			} else {
 				self.setupDesktopZoom(true);
 			}
-
+			*/
 		},
 
 		setupDesktopZoom: function(onInit) {
@@ -3359,19 +3416,40 @@ _registerModule('DesktopZoom', {
 		},
 
 		handleMouseWheel: function(e) {
+			// If scrolling down on a collapsed long caption, expand the caption
+			var _target = e.target || e.srcElement;
+			var targetCaption = _target.closest(".pswp__caption");
+			if(targetCaption) {
+				var toggleCaptionBtn = targetCaption.querySelector(".pswp__button--caption--ctrl");
+				if(toggleCaptionBtn) {
+					
+					if(toggleCaptionBtn.classList.contains("pswp__button--caption--ctrl--expand")  && e.wheelDeltaY < -50) {
+						self.ui.toggleCaption(toggleCaptionBtn);
+					} else if(toggleCaptionBtn.classList.contains("pswp__button--caption--ctrl--collapse")) {
+						// Collapse the caption if scrolled to the top and user scrolls further
+						var innerCaptionElement = targetCaption.querySelector(".pswp__caption__center");
+						if(innerCaptionElement.scrollTop == 0 && e.wheelDeltaY > 50) {
+							self.ui.toggleCaption(toggleCaptionBtn);
+						}
+					} else {
+						e.preventDefault();
+					}
+
+					return;
+				}
+			}
 
 			if(_currZoomLevel <= self.currItem.fitRatio) {
 				if( _options.modal ) {
 
 					if (!_options.closeOnScroll || _numAnimations || _isDragging) {
-						e.preventDefault();
+						e.preventDefault();				
 					} else if(_transformKey && Math.abs(e.deltaY) > 2) {
 						// close PhotoSwipe
 						// if browser supports transforms & scroll changed enough
 						_closedByScroll = true;
 						self.close();
 					}
-
 				}
 				return true;
 			}
@@ -3395,6 +3473,7 @@ _registerModule('DesktopZoom', {
 				if(e.wheelDeltaX) {
 					_wheelDelta.x = -0.16 * e.wheelDeltaX;
 				}
+				
 				if(e.wheelDeltaY) {
 					_wheelDelta.y = -0.16 * e.wheelDeltaY;
 				} else {
