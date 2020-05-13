@@ -286,7 +286,9 @@ a.pswp__share--download:hover {
   padding: 18px 10px 10px 10px;
   line-height: 20px;
   color: #FFF;
-  background-color: #000; }
+  background-color: #000;
+  -webkit-transition: height 250ms ease-out;
+          transition: height 250ms ease-out; }
   .pswp__caption__center a {
     color: #CCF; }
   .pswp__caption__center a:hover {
