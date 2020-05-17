@@ -521,11 +521,11 @@
 
 			_overrideOptionsIfAllowLongCaptionsTrue = function() {
 				if(_options.closeOnScroll) {
-					console.info("Resetting _options.closeOnScroll to false because _options.allowLongCaptions is true.");
+					console.info("FYI: Resetting _options.closeOnScroll to false because _options.allowLongCaptions is true.");
 					_options.closeOnScroll = false;
 				}
 				if(_options.closeOnVerticalDrag) {
-					console.info("Resetting _options.closeOnVerticalDrag to false because _options.allowLongCaptions is true.");
+					console.info("FYI: Resetting _options.closeOnVerticalDrag to false because _options.allowLongCaptions is true.");
 					_options.closeOnVerticalDrag = false;
 				}
 			},
@@ -534,6 +534,10 @@
 
 				// Hide controls on vertical drag
 				_listen('onVerticalDrag', function(now) {
+					if(_options.allowLongCaptions) {
+						return;
+					}
+
 					if(_controlsVisible && now < 0.95) {
 						ui.hideControls();
 					} else if(!_controlsVisible && now >= 0.95) {
@@ -942,9 +946,10 @@
 				}
 				
 			} else {
-
-				// tap anywhere (except buttons and caption) to toggle visibility of controls
-				if(_options.tapToToggleControls) {
+				// Tap anywhere (except buttons and caption) to toggle visibility of controls
+				// Since the caption may now contain other elements, have to check if target is in caption
+				var targetCaption = target.closest(".pswp__caption");
+				if(_options.tapToToggleControls && !targetCaption) {
 					if(_controlsVisible) {
 						ui.hideControls();
 					} else {
