@@ -25,6 +25,7 @@ aws-keys.json
 *.sublime-project
 *.sublime-workspace
 website/dist/
+website/.jekyll-cache/
 *.idea
 /.idea
 .node-version
